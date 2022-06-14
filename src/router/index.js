@@ -1,29 +1,120 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import Login from '@/views/Login'
+import Layout from '@/views/layout'
+import NotFound from '@/views/NotFound'
 
 Vue.use(VueRouter)
 
-const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
+const routes = [{
+        path: '/',
+        redirect: '/home'
+    },
+    {
+        // 首页
+        path: '/home',
+        component: Layout,
+        redirect: '/home/dashboard',
+        children: [{
+            path: 'dashboard',
+            component: () =>
+                import ("@/views/Dashboard"),
+            meta: {
+                title: '首页'
+            }
+        }]
+    }, {
+        // 图片上传
+        path: '/upload',
+        component: Layout,
+        redirect: '/upload/upload',
+        children: [{
+            path: 'upload',
+            component: () =>
+                import ("@/views/Upload/upload"),
+            meta: {
+                title: '图片上传'
+            }
+        }]
+    },
+    {
+        // 图标
+        path: '/charts',
+        component: Layout,
+        children: [{
+            path: 'bar',
+            component: () =>
+                import ('@/views/layout/Charts/bar'),
+            meta: {
+                title: '柱状图'
+            }
+        }, {
+            path: 'pie',
+            component: () =>
+                import ('@/views/layout/Charts/pie'),
+            meta: {
+                title: '饼状图'
+            }
+        }]
+    }, {
+        // 学生
+        path: '/StuAdmin',
+        component: Layout,
+        children: [{
+                path: 'addNewStu',
+                component: () =>
+                    import ("@/views/StuAdmin/AddNewStu"),
+                meta: {
+                    title: '新生报名'
+                }
+            },
+            {
+                path: 'adminClass',
+                component: () =>
+                    import ("@/views/StuAdmin/AdminClass"),
+                meta: {
+                    title: '班级管理'
+                }
+            },
+            {
+                path: 'stuInfo',
+                component: () =>
+                    import ("@/views/StuAdmin/StuInfo"),
+                meta: {
+                    title: '学生信息'
+                }
+            }
+        ]
+    },
+    {
+        path: '/login',
+        component: Login,
+        meta: {
+            title: '登录'
+        }
+    },
+    {
+        path: '*',
+        component: NotFound
+    }
 ]
 
 const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes
+
+    routes
+})
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title
+    let token = sessionStorage.getItem("token")
+    if (to.fullPath === '/login') {
+        next()
+    } else {
+        if (token) {
+            next()
+        } else {
+            next("/login")
+        }
+    }
 })
 
 export default router
